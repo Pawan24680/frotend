@@ -7,6 +7,7 @@ const mySchema = new Schema({
     rent: { type: Number, require: true },
     category: { type: String, require: true },
     description: { type: String, require: true },
+    image:  String,
     type: { type: String, require: true },
 }, { timestamps: true });
 

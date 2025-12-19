@@ -1,7 +1,6 @@
-
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import axios from 'axios'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
@@ -14,11 +13,12 @@ tailChase.register()
 
 const LoginSchema = Yup.object().shape({
   email: Yup.string().email('Invalid email').required('Email is required'),
-  password: Yup.string().required('Password is required')
+  password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required')
 })
 
 const Login = () => {
   const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
 
   const loginForm = useFormik({
     initialValues: {
@@ -29,7 +29,7 @@ const Login = () => {
     validationSchema: LoginSchema,
 
     onSubmit: (values, { setSubmitting, resetForm }) => {
-      axios.post('http://localhost:5000/user/login', values)
+      axios.post('http://localhost:5000/user/authenticate', values)
         .then((res) => {
           toast.success('Login successful')
           resetForm()
@@ -44,114 +44,172 @@ const Login = () => {
   })
 
   return (
-    <div className="mt-10">
-      <div className="max-w-lg mx-auto mt-7 bg-white border border-gray-200 rounded-xl shadow-2xs dark:bg-neutral-900 dark:border-neutral-700">
-        <div className="p-4 sm:p-7">
+    <div className="min-h-screen bg-gradient-to-br from-green-700 via-green-600 to-green-800 flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        
+        {/* Logo Section */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <span className="text-4xl">🌾</span>
+            <span className="text-3xl font-bold text-white">AgriRent</span>
+          </div>
+          <p className="text-green-100 text-sm">Rent Agricultural Equipment Easily</p>
+        </div>
 
+        {/* Login Card */}
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+          
           {/* Header */}
-          <div className="text-center">
-            <h1 className="block text-2xl font-bold text-gray-800 dark:text-white">
-              Login
-            </h1>
-            <p className="mt-2 text-sm text-gray-600 dark:text-neutral-400">
+          <div className="bg-gradient-to-r from-green-700 to-green-600 px-6 py-8">
+            <h1 className="text-2xl font-bold text-white">Welcome Back</h1>
+            <p className="text-green-100 text-sm mt-1">Login to your AgriRent account</p>
+          </div>
+
+          {/* Form Section */}
+          <div className="p-6 sm:p-8">
+            <form onSubmit={loginForm.handleSubmit} className="space-y-5">
+              
+              {/* Email Field */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                  📧 Email Address
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  onChange={loginForm.handleChange}
+                  onBlur={loginForm.handleBlur}
+                  value={loginForm.values.email}
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ${
+                    loginForm.touched.email && loginForm.errors.email
+                      ? 'border-red-500 bg-red-50'
+                      : 'border-gray-300 focus:border-green-500'
+                  }`}
+                />
+                {loginForm.touched.email && loginForm.errors.email && (
+                  <p className="text-red-600 text-xs mt-2 flex items-center gap-1">
+                    ❌ {loginForm.errors.email}
+                  </p>
+                )}
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                  🔒 Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter your password"
+                    onChange={loginForm.handleChange}
+                    onBlur={loginForm.handleBlur}
+                    value={loginForm.values.password}
+                    className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ${
+                      loginForm.touched.password && loginForm.errors.password
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-gray-300 focus:border-green-500'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+                {loginForm.touched.password && loginForm.errors.password && (
+                  <p className="text-red-600 text-xs mt-2 flex items-center gap-1">
+                    ❌ {loginForm.errors.password}
+                  </p>
+                )}
+              </div>
+
+              {/* Remember Me & Forgot Password */}
+              <div className="flex items-center justify-between pt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 border-gray-300 rounded accent-green-600"
+                  />
+                  <span className="text-sm text-gray-600">Remember me</span>
+                </label>
+                <a
+                  href="/forgot-password"
+                  className="text-sm text-green-600 hover:text-green-700 font-medium transition"
+                >
+                  Forgot password?
+                </a>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                disabled={loginForm.isSubmitting}
+                type="submit"
+                className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none transition transform hover:scale-[1.02] active:scale-95"
+              >
+                {loginForm.isSubmitting ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <l-tail-chase size="20" speed="1.75" color="white"></l-tail-chase>
+                    <span>Signing in...</span>
+                  </div>
+                ) : (
+                  '🚀 Sign In'
+                )}
+              </button>
+
+              {/* Divider */}
+              <div className="relative pt-2">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">or</span>
+                </div>
+              </div>
+
+              {/* Social Login Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  className="py-2 px-3 border-2 border-gray-300 rounded-lg hover:border-gray-400 transition flex items-center justify-center gap-2 text-sm font-medium text-gray-700"
+                >
+                  <span>👤</span> Google
+                </button>
+                <button
+                  type="button"
+                  className="py-2 px-3 border-2 border-gray-300 rounded-lg hover:border-gray-400 transition flex items-center justify-center gap-2 text-sm font-medium text-gray-700"
+                >
+                  <span>📘</span> Facebook
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          {/* Sign Up Link */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 text-center">
+            <p className="text-gray-700 text-sm">
               Don&apos;t have an account?
               <a
                 href="/signup"
-                className="text-blue-600 decoration-2 hover:underline font-medium dark:text-blue-500 ms-1"
+                className="text-green-600 hover:text-green-700 font-bold ml-1 transition"
               >
                 Sign up here
               </a>
             </p>
           </div>
 
-          {/* Form */}
-          <div className="mt-5">
-            <form onSubmit={loginForm.handleSubmit}>
-              <div className="grid gap-y-4">
-
-                {/* Email */}
-                <div>
-                  <label htmlFor="email" className="block text-sm mb-2 dark:text-white">
-                    Email address
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    onChange={loginForm.handleChange}
-                    value={loginForm.values.email}
-                    className="py-2.5 px-4 block w-full border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400"
-                  />
-                  {
-                    loginForm.touched.email && loginForm.errors.email && (
-                      <p className="text-xs text-red-600 mt-2">
-                        {loginForm.errors.email}
-                      </p>
-                    )
-                  }
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label htmlFor="password" className="block text-sm mb-2 dark:text-white">
-                    Password
-                  </label>
-                  <input
-                    id="password"
-                    type="password"
-                    onChange={loginForm.handleChange}
-                    value={loginForm.values.password}
-                    className="py-2.5 px-4 block w-full border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400"
-                  />
-                  {
-                    loginForm.touched.password && loginForm.errors.password && (
-                      <p className="text-xs text-red-600 mt-2">
-                        {loginForm.errors.password}
-                      </p>
-                    )
-                  }
-                </div>
-
-                {/* Remember + Forgot */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <input
-                      id="remember"
-                      type="checkbox"
-                      className="shrink-0 mt-0.5 border-gray-200 rounded-sm text-blue-600 focus:ring-blue-500 dark:bg-neutral-800 dark:border-neutral-700"
-                    />
-                    <label htmlFor="remember" className="ms-2 text-sm dark:text-white">
-                      Remember me
-                    </label>
-                  </div>
-
-                  <a
-                    href="/forgot-password"
-                    className="text-sm text-blue-600 hover:underline dark:text-blue-500"
-                  >
-                    Forgot password?
-                  </a>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  disabled={loginForm.isSubmitting}
-                  type="submit"
-                  className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  {
-                    loginForm.isSubmitting ? (
-                      <l-tail-chase size="30" speed="1.75" color="white"></l-tail-chase>
-                    ) : (
-                      'Sign in'
-                    )
-                  }
-                </button>
-
-              </div>
-            </form>
-          </div>
-
         </div>
+
+        {/* Footer Info */}
+        <div className="mt-6 text-center text-green-100 text-xs">
+          <p>By signing in, you agree to our Terms & Privacy Policy</p>
+        </div>
+
       </div>
     </div>
   )

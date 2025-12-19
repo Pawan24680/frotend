@@ -1,32 +1,33 @@
 'use client';
 import axios from 'axios';
 import { useFormik } from 'formik';
-import React from 'react';
+import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import * as Yup from 'yup';
 import { TailChase } from 'ldrs/react'
 import 'ldrs/react/TailChase.css'
 import { useRouter } from 'next/navigation';
 
-
 const SignupSchema = Yup.object().shape({
   name: Yup.string()
-    .min(2, 'Too Short!')
-    .max(50, 'Too Long!')
-    .required('Naam nhi hai kya?'),
-  email: Yup.string().email('Invalid email').required('Required'),
-  password: Yup.string().required('Password is required').min(6, 'min 6 characters')
-    .matches(/[A-Z]/, 'uppercase letter is required')
-    .matches(/[a-z]/, 'lowercase letter is required')
-    .matches(/[0-9]/, 'number is required')
-    .matches(/[@$!%*#?&]/, 'special character is required'),
-  confirmPassword: Yup.string().required('Confirm your password')
+    .min(2, 'Name must be at least 2 characters')
+    .max(50, 'Name is too long')
+    .required('Name is required'),
+  email: Yup.string().email('Invalid email address').required('Email is required'),
+  password: Yup.string().required('Password is required')
+    .min(6, 'Password must be at least 6 characters')
+    .matches(/[A-Z]/, 'Must contain an uppercase letter')
+    .matches(/[a-z]/, 'Must contain a lowercase letter')
+    .matches(/[0-9]/, 'Must contain a number')
+    .matches(/[@$!%*#?&]/, 'Must contain a special character (@$!%*#?&)'),
+  confirmPassword: Yup.string().required('Please confirm your password')
     .oneOf([Yup.ref('password'), null], 'Passwords must match')
 });
 
 const Signup = () => {
-
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const signupForm = useFormik({
     initialValues: {
@@ -36,41 +37,47 @@ const Signup = () => {
       confirmPassword: ''
     },
     onSubmit: (values, { resetForm, setSubmitting }) => {
-      console.log(values);
-
-      // send values to backend
       axios.post('http://localhost:5000/user/add', values)
         .then((result) => {
-          toast.success('Account created successfully');
+          toast.success('Account created successfully!');
           resetForm();
           router.push('/login');
         }).catch((err) => {
           console.log(err);
-          toast.error('Some error occured');
+          toast.error(err.response?.data?.message || 'Error creating account');
           setSubmitting(false);
         });
-
     },
-
     validationSchema: SignupSchema
-  })
+  });
 
   return (
-    <div className='mt-10'>
-      <div className="max-w-lg mx-auto mt-7 bg-white border border-gray-200 rounded-xl shadow-2xs dark:bg-neutral-900 dark:border-neutral-700">
-        <div className="p-4 sm:p-7">
-          <div className="text-center">
-            <h1 className="block text-2xl font-bold text-gray-800 dark:text-white">Sign up</h1>
-            <p className="mt-2 text-sm text-gray-600 dark:text-neutral-400">
-              Already have an account?
-              <a className="text-blue-600 decoration-2 hover:underline focus:outline-hidden focus:underline font-medium dark:text-blue-500" href="../examples/html/signin.html">
-                Sign in here
-              </a>
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-green-700 via-green-600 to-green-800 flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        
+        {/* Logo Section */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <span className="text-4xl">🌾</span>
+            <span className="text-3xl font-bold text-white">AgriRent</span>
+          </div>
+          <p className="text-green-100 text-sm">Create Your Account Today</p>
+        </div>
+
+        {/* Signup Card */}
+        <div className="bg-white rounded-xl shadow-2xl overflow-hidden">
+          
+          {/* Header */}
+          <div className="bg-gradient-to-r from-green-700 to-green-600 px-6 py-8">
+            <h1 className="text-2xl font-bold text-white">Get Started</h1>
+            <p className="text-green-100 text-sm mt-1">Join thousands of farmers on AgriRent</p>
           </div>
 
-          <div className="mt-5">
-            <button type="button" className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-800 dark:focus:bg-neutral-800">
+          {/* Form Section */}
+          <div className="p-6 sm:p-8">
+            
+            {/* Google Signup Button */}
+            <button type="button" className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition">
               <svg className="w-4 h-auto" width="46" height="47" viewBox="0 0 46 47" fill="none">
                 <path d="M46 24.0287C46 22.09 45.8533 20.68 45.5013 19.2112H23.4694V27.9356H36.4069C36.1429 30.1094 34.7347 33.37 31.5957 35.5731L31.5663 35.8669L38.5191 41.2719L38.9885 41.3306C43.4477 37.2181 46 31.1669 46 24.0287Z" fill="#4285F4" />
                 <path d="M23.4694 47C29.8061 47 35.1161 44.9144 39.0179 41.3012L31.625 35.5437C29.6301 36.9244 26.9898 37.8937 23.4987 37.8937C17.2793 37.8937 12.0281 33.7812 10.1505 28.1412L9.88649 28.1706L2.61097 33.7812L2.52296 34.0456C6.36608 41.7125 14.287 47 23.4694 47Z" fill="#34A853" />
@@ -80,143 +87,211 @@ const Signup = () => {
               Sign up with Google
             </button>
 
-            <div className="py-3 flex items-center text-xs text-gray-400 uppercase before:flex-1 before:border-t before:border-gray-200 before:me-6 after:flex-1 after:border-t after:border-gray-200 after:ms-6 dark:text-neutral-500 dark:before:border-neutral-600 dark:after:border-neutral-600">Or</div>
-
-            {/* Form */}
-            <form onSubmit={signupForm.handleSubmit} >
-              <div className="grid gap-y-4">
-                {/* Form Group */}
-                <div>
-                  <label htmlFor="name" className="block text-sm mb-2 dark:text-white">Name</label>
-                  <div className="relative">
-                    <input type="text"
-                      id="name"
-                      onChange={signupForm.handleChange}
-                      value={signupForm.values.name}
-                      className="py-2.5 sm:py-3 px-4 block w-full border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" aria-describedby="email-error" />
-                    <div className="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-                      <svg className="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {
-                    (signupForm.touched.name && signupForm.errors.name) && (
-                      <p className="text-xs text-red-600 mt-2" id="email-error">
-                        {signupForm.errors.name}
-                      </p>
-                    )
-                  }
-
-                </div>
-                {/* End Form Group */}
-
-                {/* Form Group */}
-                <div>
-                  <label htmlFor="email" className="block text-sm mb-2 dark:text-white">Email address</label>
-                  <div className="relative">
-                    <input type="email"
-                      id="email"
-                      onChange={signupForm.handleChange}
-                      value={signupForm.values.email}
-                      className="py-2.5 sm:py-3 px-4 block w-full border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" aria-describedby="email-error" />
-                    <div className="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-                      <svg className="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                      </svg>
-                    </div>
-                  </div>
-                  {
-                    (signupForm.touched.email && signupForm.errors.email) && (
-                      <p className="text-xs text-red-600 mt-2" id="email-error">
-                        {signupForm.errors.email}
-                      </p>
-                    )
-                  }
-                </div>
-                {/* End Form Group */}
-
-                {/* Form Group */}
-                <div>
-                  <label htmlFor="password" className="block text-sm mb-2 dark:text-white">Password</label>
-                  <div className="relative">
-                    <input type="text"
-                      id="password"
-                      onChange={signupForm.handleChange}
-                      value={signupForm.values.password}
-                      className="py-2.5 sm:py-3 px-4 block w-full border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" aria-describedby="password-error" />
-                    <div className="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-                      <svg className="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                      </svg>
-                    </div>
-                  </div>
-                  {
-                    (signupForm.touched.password && signupForm.errors.password) && (
-                      <p className="text-xs text-red-600 mt-2" id="email-error">
-                        {signupForm.errors.password}
-                      </p>
-                    )
-                  }
-                </div>
-                {/* End Form Group */}
-
-                {/* Form Group */}
-                <div>
-                  <label htmlFor="confirm-password" className="block text-sm mb-2 dark:text-white">Confirm Password</label>
-                  <div className="relative">
-                    <input type="password"
-                      id="confirmPassword"
-                      onChange={signupForm.handleChange}
-                      value={signupForm.values.confirmPassword}
-                      className="py-2.5 sm:py-3 px-4 block w-full border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600" aria-describedby="confirm-password-error" />
-                    <div className="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
-                      <svg className="size-5 text-red-500" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
-                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z" />
-                      </svg>
-                    </div>
-                  </div>
-                  {
-                    (signupForm.touched.confirmPassword && signupForm.errors.confirmPassword) && (
-                      <p className="text-xs text-red-600 mt-2" id="email-error">
-                        {signupForm.errors.confirmPassword}
-                      </p>
-                    )
-                  }
-                </div>
-                {/* End Form Group */}
-
-                {/* Checkbox */}
-                <div className="flex items-center">
-                  <div className="flex">
-                    <input id="remember-me" name="remember-me" type="checkbox" className="shrink-0 mt-0.5 border-gray-200 rounded-sm text-blue-600 focus:ring-blue-500 dark:bg-neutral-800 dark:border-neutral-700 dark:checked:bg-blue-500 dark:checked:border-blue-500 dark:focus:ring-offset-gray-800" />
-                  </div>
-                  <div className="ms-3">
-                    <label htmlFor="remember-me" className="text-sm dark:text-white">I accept the <a className="text-blue-600 decoration-2 hover:underline focus:outline-hidden focus:underline font-medium dark:text-blue-500" href="#">Terms and Conditions</a></label>
-                  </div>
-                </div>
-                {/* End Checkbox */}
-
-                <button disabled={signupForm.isSubmitting} type="submit" className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none">
-                  {
-                    signupForm.isSubmitting ? (
-                      <TailChase
-                        size="40"
-                        speed="1.75"
-                        color="white"
-                      />
-                    ) : (
-                      'Submit Form'
-                    )
-                  }
-
-                </button>
+            {/* Divider */}
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
               </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500 font-medium">Or continue with email</span>
+              </div>
+            </div>
+
+            {/* Signup Form */}
+            <form onSubmit={signupForm.handleSubmit} className="space-y-5">
+              
+              {/* Name Field */}
+              <div>
+                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                  👤 Full Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  placeholder="John Doe"
+                  onChange={signupForm.handleChange}
+                  onBlur={signupForm.handleBlur}
+                  value={signupForm.values.name}
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ${
+                    signupForm.touched.name && signupForm.errors.name
+                      ? 'border-red-500 bg-red-50'
+                      : 'border-gray-300 focus:border-green-500'
+                  }`}
+                />
+                {signupForm.touched.name && signupForm.errors.name && (
+                  <p className="text-red-600 text-xs mt-2 flex items-center gap-1">
+                    ❌ {signupForm.errors.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Email Field */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                  📧 Email Address
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  placeholder="you@example.com"
+                  onChange={signupForm.handleChange}
+                  onBlur={signupForm.handleBlur}
+                  value={signupForm.values.email}
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ${
+                    signupForm.touched.email && signupForm.errors.email
+                      ? 'border-red-500 bg-red-50'
+                      : 'border-gray-300 focus:border-green-500'
+                  }`}
+                />
+                {signupForm.touched.email && signupForm.errors.email && (
+                  <p className="text-red-600 text-xs mt-2 flex items-center gap-1">
+                    ❌ {signupForm.errors.email}
+                  </p>
+                )}
+              </div>
+
+              {/* Password Field */}
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                  🔒 Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    placeholder="Enter a strong password"
+                    onChange={signupForm.handleChange}
+                    onBlur={signupForm.handleBlur}
+                    value={signupForm.values.password}
+                    className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ${
+                      signupForm.touched.password && signupForm.errors.password
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-gray-300 focus:border-green-500'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
+                  >
+                    {showPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+                {signupForm.touched.password && signupForm.errors.password && (
+                  <p className="text-red-600 text-xs mt-2 flex items-center gap-1">
+                    ❌ {signupForm.errors.password}
+                  </p>
+                )}
+                {/* Password Requirements */}
+                {signupForm.values.password && (
+                  <div className="mt-3 text-xs space-y-1">
+                    <p className={signupForm.values.password.length >= 6 ? 'text-green-600' : 'text-gray-600'}>
+                      ✓ At least 6 characters
+                    </p>
+                    <p className={/[A-Z]/.test(signupForm.values.password) ? 'text-green-600' : 'text-gray-600'}>
+                      ✓ One uppercase letter
+                    </p>
+                    <p className={/[a-z]/.test(signupForm.values.password) ? 'text-green-600' : 'text-gray-600'}>
+                      ✓ One lowercase letter
+                    </p>
+                    <p className={/[0-9]/.test(signupForm.values.password) ? 'text-green-600' : 'text-gray-600'}>
+                      ✓ One number
+                    </p>
+                    <p className={/[@$!%*#?&]/.test(signupForm.values.password) ? 'text-green-600' : 'text-gray-600'}>
+                      ✓ One special character (@$!%*#?&)
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Confirm Password Field */}
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                  🔐 Confirm Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    id="confirmPassword"
+                    placeholder="Re-enter your password"
+                    onChange={signupForm.handleChange}
+                    onBlur={signupForm.handleBlur}
+                    value={signupForm.values.confirmPassword}
+                    className={`w-full px-4 py-3 border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition ${
+                      signupForm.touched.confirmPassword && signupForm.errors.confirmPassword
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-gray-300 focus:border-green-500'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition"
+                  >
+                    {showConfirmPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+                {signupForm.touched.confirmPassword && signupForm.errors.confirmPassword && (
+                  <p className="text-red-600 text-xs mt-2 flex items-center gap-1">
+                    ❌ {signupForm.errors.confirmPassword}
+                  </p>
+                )}
+              </div>
+
+              {/* Terms Checkbox */}
+              <div className="flex items-start gap-2">
+                <input
+                  id="terms"
+                  name="terms"
+                  type="checkbox"
+                  className="mt-1 w-4 h-4 border-gray-300 rounded accent-green-600 cursor-pointer"
+                  required
+                />
+                <label htmlFor="terms" className="text-sm text-gray-600">
+                  I agree to the <a href="#" className="text-green-600 hover:text-green-700 font-medium">Terms and Conditions</a> and <a href="#" className="text-green-600 hover:text-green-700 font-medium">Privacy Policy</a>
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                disabled={signupForm.isSubmitting}
+                type="submit"
+                className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-700 text-white font-bold rounded-lg hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none transition transform hover:scale-[1.02] active:scale-95"
+              >
+                {signupForm.isSubmitting ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <TailChase size="20" speed="1.75" color="white" />
+                    <span>Creating Account...</span>
+                  </div>
+                ) : (
+                  '🌱 Create Account'
+                )}
+              </button>
+
             </form>
-            {/* End Form */}
+
           </div>
+
+          {/* Sign In Link */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 text-center">
+            <p className="text-gray-700 text-sm">
+              Already have an account?
+              <a
+                href="/login"
+                className="text-green-600 hover:text-green-700 font-bold ml-1 transition"
+              >
+                Sign in here
+              </a>
+            </p>
+          </div>
+
         </div>
+
+        {/* Footer Info */}
+        <div className="mt-6 text-center text-green-100 text-xs">
+          <p>By signing up, you agree to our Terms & Privacy Policy</p>
+        </div>
+
       </div>
     </div>
   )

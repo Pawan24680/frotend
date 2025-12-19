@@ -1,5 +1,5 @@
 const express = require('express');
-const Model = require('../../../Section3/BACKEND/models/UserModel');
+const Model = require('../models/UserModel');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const authorise = require('../middleware/auth');
@@ -18,7 +18,7 @@ router.post('/add', (req, res) => {
 });
 
 // getall
-router.get('/getall', authorise, (req, res) => {
+router.get('/getall', (req, res) => {
 
     Model.find()
         .then((result) => {
